@@ -1,0 +1,24 @@
+@require: list
+
+module Seqsplit: sig
+  val embed-string-breakable : context -> string -> inline-boxes
+
+  direct \seqsplit : [string] inline-cmd
+end = struct
+  let-rec string-map f s =
+    let l = string-length s in
+    if l == 0 then []
+    else
+      f (string-sub s 0 1) :: string-map f (string-sub s 1 (l - 1))
+
+  let tokenize ctx s =
+    let s = read-inline ctx (embed-string s) in
+    discretionary 0 s s inline-nil
+
+  let embed-string-breakable ctx s =
+    s |> string-map (tokenize ctx)
+      |> List.fold-left (++) inline-nil
+
+  let-inline ctx \seqsplit s =
+    embed-string-breakable ctx s
+end
